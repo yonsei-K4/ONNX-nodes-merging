@@ -52,7 +52,7 @@ def merge_ONNX_graph(graph, values):
 def compute_graph_weight(graph, values):
     stack = []
 
-    # make a copy of graph so we can modify it safely
+    # make a copy of graph 
     graph = {k: list(v) for k, v in graph.items()}
 
     for node in graph:
@@ -87,7 +87,7 @@ def compute_graph_weight(graph, values):
                         graph.pop(node, None)
                         values.pop(node, None)
 
-                # clean up stack
+                # clean up 
                 stack = stack[:i] + stack[i+2:]
                 break  # restart loop from beginning
             i += 1
