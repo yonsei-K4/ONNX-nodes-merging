@@ -171,7 +171,7 @@ def compute_graph_weight(graph, values):
         if is_merge_node(graph, node):
             stack.append((1, node))
 
-    print("stack:", stack)
+    # print("stack:", stack)
 
     while len(stack) >= 2:
         i = 0
@@ -229,7 +229,7 @@ def onnx_to_dag_with_shapes(onnx_model_path, batch_size=1):
     dag = nx.DiGraph()
 
     for node in graph.node:
-        print(node.name)
+        # print(node.name)
         node_name = node.name
 
         input_shapes = {inp: tensor_info_map.get(inp, None) for inp in node.input}
@@ -237,20 +237,24 @@ def onnx_to_dag_with_shapes(onnx_model_path, batch_size=1):
         mreq = 0
 
         for input_tensor in input_shapes:
-            print(f"Input Tensor: {input_tensor}, Shape: {input_shapes[input_tensor]}")
+            # print(f"Input Tensor: {input_tensor}, Shape: {input_shapes[input_tensor]}")
             shape = input_shapes[input_tensor][1]
             elem_size = ONNX_TYPE_SIZE.get(input_shapes[input_tensor][0], 0)
             num_elements = np.prod(shape) if shape else 0
             mreq += num_elements * elem_size
 
         for input_tensor in output_shapes:
-            print(f"Output Tensor: {input_tensor}, Shape: {output_shapes[input_tensor]}")
+            # print(f"Output Tensor: {input_tensor}, Shape: {output_shapes[input_tensor]}")
             shape = output_shapes[input_tensor][1]
             elem_size = ONNX_TYPE_SIZE.get(output_shapes[input_tensor][0], 0)
             num_elements = np.prod(shape) if shape else 0
             mreq += num_elements * elem_size
 
         # print(input_shapes)
+
+        # if mreq == 0:
+        #     print(f'Warning: Node {node_name} has no memory requirement (mreq = 0).')
+        #     print(f'Node: {node_name}, Inputs: {node.input}, Outputs: {node.output}')
 
         dag.add_node(
             node_name,
@@ -292,7 +296,14 @@ if __name__ == "__main__":
     model = sys.argv[1]
     batch_size = int(sys.argv[2])
 
-    dag, dag_dict = onnx_to_dag_with_shapes("models/" + model + ".onnx", batch_size)
+    dag, dag_dict = onnx_to_dag_with_shapes("/models/" + model + ".onnx", batch_size)
+
+    # print(dag_dict)
+
+    # for node, attrs in dag.nodes(data=True):
+    #     print(f"Node: {node}")
+    #     print(f"  Op Type: {attrs}")
+
     values = {node: int(attrs['mreq']) for node, attrs in dag.nodes(data=True)}
 
     # print(dag)
