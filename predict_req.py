@@ -1,3 +1,4 @@
+import sys
 import onnx
 from onnx import shape_inference
 import numpy as np
@@ -287,21 +288,25 @@ def format_node_label(node_name, node_data):
     label += f"Shape: {node_data['output_shapes']}"
     return label
 
-# dag, dag_dict = onnx_to_dag_with_shapes("models/resnet152-v1-7.onnx", 4)
-dag, dag_dict = onnx_to_dag_with_shapes("models/model.onnx", 4)
-# dag, dag_dict = onnx_to_dag_with_shapes("models/yolov4.onnx", 4)
+if __name__ == "__main__":
+    model = sys.argv[1]
+    batch_size = int(sys.argv[2])
 
-print(dag)
+    dag, dag_dict = onnx_to_dag_with_shapes("models/" + model + ".onnx", batch_size)
+    values = {node: int(attrs['mreq']) for node, attrs in dag.nodes(data=True)}
 
-print("==" * 20)
+    # print(dag)
+    # print("==" * 20)
 
-values = {node: int(attrs['mreq']) for node, attrs in dag.nodes(data=True)}
-print("Values:", values)
+    # print("Values:", values)
 
-print("==" * 20)
+    # print("==" * 20)
 
-result = compute_graph_weight(dag_dict, values)
-print("Total weight:", result)
+    result = compute_graph_weight(dag_dict, values)
+    print("===== Memory Requirement =====")
+    print("Model:", model + '.onnx')
+    print("Batch Size:", batch_size)
+    print("Total Memory Requirement: %d KB / %d MB / %d GB" % (result / 1024, result / (1024 * 1024), result / (1024 * 1024 * 1024)))
 
 
 # for node_name, attrs in dag.nodes(data=True):
