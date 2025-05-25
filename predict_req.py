@@ -227,10 +227,13 @@ def onnx_to_dag_with_shapes(onnx_model_path, batch_size=1):
     # print("==" * 20)
 
     dag = nx.DiGraph()
+    i = 0
 
     for node in graph.node:
-        # print(node.name)
-        node_name = node.name
+        node_name = node.name if node.name else f"{node.op_type}_{i}"
+        # print(f'[{i}] {node_name}')
+        # print(f'  Inputs: {node.input}')
+        # print(f'  Outputs: {node.output}')
 
         input_shapes = {inp: tensor_info_map.get(inp, None) for inp in node.input}
         output_shapes = {out: tensor_info_map.get(out, None) for out in node.output}
@@ -252,17 +255,17 @@ def onnx_to_dag_with_shapes(onnx_model_path, batch_size=1):
 
         # print(input_shapes)
 
-        # if mreq == 0:
-        #     print(f'Warning: Node {node_name} has no memory requirement (mreq = 0).')
-        #     print(f'Node: {node_name}, Inputs: {node.input}, Outputs: {node.output}')
+        if mreq == 0:
+            print(f'Warning: Node {node_name} has no memory requirement (mreq = 0).')
+            print(f'Node: {node_name}, Inputs: {node.input}, Outputs: {node.output}')
 
         dag.add_node(
-            node_name,
-            op_type=node.op_type,
-            inputs=node.input,
-            outputs=node.output,
-            input_shapes=input_shapes,
-            output_shapes=output_shapes,
+            node.name if node.name else f"{node.op_type}_{i}",
+            op_type=node.op_type if node.op_type else "Unknown",
+            inputs=node.input if node.input else [],
+            outputs=node.output if node.output else [],
+            input_shapes=input_shapes if input_shapes else {},
+            output_shapes=output_shapes if output_shapes else {},
             in_degree=0,
             out_degree=0,
             mreq=mreq,
@@ -270,11 +273,23 @@ def onnx_to_dag_with_shapes(onnx_model_path, batch_size=1):
             is_merge=False,
         )
 
+        # if not dag.nodes[node_name]['mreq']:
+        #     print(dag.nodes[node_name])
+
         for input_tensor in node.input:
-            for prev_node in graph.node:
-                if input_tensor in prev_node.output:
-                    prev_node_name = prev_node.name or f"{prev_node.op_type}_{id(prev_node)}"
-                    dag.add_edge(prev_node_name, node_name, tensor=input_tensor)
+            # print(f'  input = {input_tensor}')
+            for prev_node, prev_attr in list(dag.nodes(data=True)):
+                # print(f'    prev = {attr['outputs']}')
+                if input_tensor in prev_attr['outputs']:
+                    # print(f'    Found input tensor {input_tensor} in previous node {prev_node}')
+                    dag.add_edge(prev_node, node_name, tensor=input_tensor)
+                    # # prev_node_name = prev_node.name or f"{prev_node.op_type}_{id(prev_node)}"
+                    # # dag.add_edge(prev_node_name, node_name, tensor=input_tensor)
+                    # break
+            #         prev_node_name = prev_node.name or f"{prev_node.op_type}_{id(prev_node)}"
+            #         dag.add_edge(prev_node_name, node_name, tensor=input_tensor)
+
+        i += 1
 
 
     get_node_degrees(dag)
@@ -300,7 +315,21 @@ if __name__ == "__main__":
 
     dag, dag_dict = onnx_to_dag_with_shapes("/models/" + model + ".onnx", batch_size)
 
-    # print(dag_dict)
+    print('resnetv27_stage1__plus1' in dag.nodes())
+
+    # for node, attrs in dag.nodes(data=True):
+    #     print(f"Node: {node}")
+    #     print(f"  Op Type: {attrs['op_type']}")
+    #     print(f"  Inputs: {attrs['inputs']}")
+    #     print(f"  Input Shapes: {attrs['input_shapes']}")
+    #     print(f"  Outputs: {attrs['outputs']}")
+    #     print(f"  Output Shapes: {attrs['output_shapes']}")
+    #     print(f"  In-Degree: {attrs['in_degree']}")
+    #     print(f"  Out-Degree: {attrs['out_degree']}")
+    #     print(f"  MReq: {attrs['mreq']:,}")
+    #     print(f"  Is Branch: {attrs['is_branch']}")
+    #     print(f"  Is Merge: {attrs['is_merge']}")
+    #     print()
 
     # for node, attrs in dag.nodes(data=True):
     #     print(f"Node: {node}")

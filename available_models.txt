@@ -5,3 +5,8 @@ resnext50_32x4d
 squeezenet1_0
 resnet152-v1-7
 vgg16-7
+vgg_ilsvrc_16_age_chalearn_iccv2015
+vgg_ilsvrc_16_age_imdb_wiki
+vgg_ilsvrc_16_gender_imdb_wiki
+emotion-ferplus-12-int8
+caffenet-12
