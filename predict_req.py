@@ -293,8 +293,10 @@ def format_node_label(node_name, node_data):
     return label
 
 if __name__ == "__main__":
+    sys.setrecursionlimit(100000) 
+
     model = sys.argv[1]
-    batch_size = int(sys.argv[2])
+    batch_size = int(sys.argv[2]) if len(sys.argv) > 2 else 1
 
     dag, dag_dict = onnx_to_dag_with_shapes("/models/" + model + ".onnx", batch_size)
 

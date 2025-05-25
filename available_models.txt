@@ -1,2 +1,7 @@
+resnet101
+resnet50
+resnext101_32x8d
+resnext50_32x4d
+squeezenet1_0
 resnet152-v1-7
 vgg16-7
