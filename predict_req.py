@@ -158,58 +158,71 @@ def merge_ONNX_graph(graph, values):
         return req
     return dfs
 
+def path_exists(graph, start, end):
+    visited = set()
+    stack = [start]
+    while stack:
+        node = stack.pop()
+        if node == end:
+            return True
+        if node in visited:
+            continue
+        visited.add(node)
+        stack.extend(graph[node])
+    return False
+    
 def compute_graph_weight(graph, values):
-    stack = []
-
-    # make a copy of graph 
+    # make a copy of graph and values
     graph = {k: list(v) for k, v in graph.items()}
-    # print("graph:", graph)
+    values = dict(values)
 
-    for node in graph:
-        if is_branch_node(graph, node):
-            stack.append((0, node))
-        if is_merge_node(graph, node):
-            stack.append((1, node))
+    while True:
+        found = False
+        branch_nodes = [n for n in graph if is_branch_node(graph, n)]
+        merge_nodes = [n for n in graph if is_merge_node(graph, n)]
 
-    # print("stack:", stack)
+        for branch in branch_nodes:
+            for merge in merge_nodes:
+                if branch not in graph or merge not in graph:
+                    continue
+                if not path_exists(graph, branch, merge):
+                    continue
 
-    while len(stack) >= 2:
-        i = 0
-        while i < len(stack) - 1:
-            if stack[i][0] == 0 and stack[i + 1][0] == 1:
-                branch = stack[i][1]
-                merge = stack[i + 1][1]
+                # safe check
+                try:
+                    subgraph = extract_subgraph(graph, branch, merge)
+                    sub_values = {k: values[k] for k in subgraph}
+                except KeyError:
+                    continue  # skip if any key missing due to earlier deletion
 
-                # Extract subgraph and compute value
-                subgraph = extract_subgraph(graph, branch, merge)
-                sub_values = {k: values[k] for k in subgraph}
                 dfs = merge_ONNX_graph(subgraph, sub_values)
                 merged_value = dfs(branch, branch)
-                # print(merged_value)
+                print(f"Merged {branch} -> {merge} = {merged_value}")
 
-                # update values: branch node gets the computed value
+                # update value
                 values[branch] = merged_value
 
-                # remove all outgoing edges from branch and redirect to merge
+                # redirect edges
                 graph[branch] = [merge]
 
-                # remove all nodes in subgraph except branch and merge
+                # delete intermediate nodes
                 for node in subgraph:
                     if node != branch and node != merge:
                         graph.pop(node, None)
                         values.pop(node, None)
 
-                # clean up 
-                stack = stack[:i] + stack[i+2:]
-                break  # restart loop from beginning
-            i += 1
+                found = True
+                break  # restart outer loop
+            if found:
+                break
+        if not found:
+            break  # no more merges
 
     # compute total weight from modified graph
     dfs = merge_ONNX_graph(graph, values)
     first_node = next(iter(graph))
-    # first_value = values[first_node]
 
-    return dfs(first_node, first_node)
+    return dfs(first_node,first_node)
 
 # result = compute_graph_weight(graph, values)
 # print("Total weight:", result)
