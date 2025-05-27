@@ -365,7 +365,7 @@ def onnx_to_dag_with_shapes(onnx_model_path, batch_size=1):
             output_shapes=output_shapes,
             in_degree=0,
             out_degree=0,
-            mreq=flops,  # Now stores FLOPs instead of memory size
+            creq=flops,  
             is_branch=False,
             is_merge=False,
         )
@@ -390,21 +390,48 @@ def format_node_label(node_name, node_data):
     label += f"Shape: {node_data['output_shapes']}"
     return label
 
-# dag, dag_dict = onnx_to_dag_with_shapes("models/resnet152-v1-7.onnx", 4)
-dag, dag_dict = onnx_to_dag_with_shapes("models/model.onnx", 4)
-# dag, dag_dict = onnx_to_dag_with_shapes("models/yolov4.onnx", 4)
 
-print(dag)
 
-print("==" * 20)
+if __name__ == "__main__":
+    sys.setrecursionlimit(100000) 
 
-values = {node: int(attrs['mreq']) for node, attrs in dag.nodes(data=True)}
-print("Values:", values)
+    model = sys.argv[1]
+    batch_size = int(sys.argv[2]) if len(sys.argv) > 2 else 1
 
-print("==" * 20)
+    dag, dag_dict = onnx_to_dag_with_shapes("/models/" + model + ".onnx", batch_size)
 
-result = compute_graph_weight(dag_dict, values)
-print("Total weight:", result)
+    # for node, attrs in dag.nodes(data=True):
+    #     print(f"Node: {node}")
+    #     print(f"  Op Type: {attrs['op_type']}")
+    #     print(f"  Inputs: {attrs['inputs']}")
+    #     print(f"  Input Shapes: {attrs['input_shapes']}")
+    #     print(f"  Outputs: {attrs['outputs']}")
+    #     print(f"  Output Shapes: {attrs['output_shapes']}")
+    #     print(f"  In-Degree: {attrs['in_degree']}")
+    #     print(f"  Out-Degree: {attrs['out_degree']}")
+    #     print(f"  MReq: {attrs['mreq']:,}")
+    #     print(f"  Is Branch: {attrs['is_branch']}")
+    #     print(f"  Is Merge: {attrs['is_merge']}")
+    #     print()
+
+    # for node, attrs in dag.nodes(data=True):
+    #     print(f"Node: {node}")
+    #     print(f"  Op Type: {attrs}")
+
+    values = {node: int(attrs['creq']) for node, attrs in dag.nodes(data=True)}
+
+    # print(dag)
+    # print("==" * 20)
+
+    # print("Values:", values)
+
+    # print("==" * 20)
+
+    result = compute_graph_weight(dag_dict, values)
+    print("===== Computation Requirement =====")
+    print("Model:", model + '.onnx')
+    print("Batch Size:", batch_size)
+    print("Total Computation Requirement: %d FLOPs" % result)
 
 
 # for node_name, attrs in dag.nodes(data=True):
@@ -438,3 +465,5 @@ print("Total weight:", result)
 # plt.title("DAG with Node Attributes")
 # plt.tight_layout()
 # plt.show()
+
+
