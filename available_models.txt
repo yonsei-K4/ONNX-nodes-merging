@@ -1,32 +1,32 @@
 GoogleNet                 6 MB
-    age_googlenet         6 MB
-    googlenet-12          6 MB
-    gender_googlenet      6 MB
+    age_googlenet         6 MB    693633024 FLOPs
+    googlenet-12          6 MB    693633024 FLOPs
+    gender_googlenet      6 MB    693633024 FLOPs
 
 Inception                14 MB
-    inception_v3         14 MB
-    inception_v4         14 MB
+    inception_v3         14 MB    1393735680 FLOPs
+    inception_v4         14 MB    1716280320 FLOPs
 
 ResNet
-    resnet152-v1-7       18 MB
-    resnet152-v2-7       18 MB
-    resnet101            18 MB
-    resnet50             18 MB
-    resnet50-v1-12       18 MB
-    resnext101_32x8d     25 MB
-    resnext50_32x4d      17 MB
-    squeezenet1_0         8 MB
+    resnet152-v1-7       18 MB    436731904 FLOPs
+    resnet152-v2-7       18 MB    436731904 FLOPs
+    resnet101            18 MB    436731904 FLOPs
+    resnet50             18 MB    436731904 FLOPs
+    resnet50-v1-12       18 MB    436731904 FLOPs
+    resnext101_32x8d     25 MB    3904897024 FLOPs
+    resnext50_32x4d      17 MB    1130364928 FLOPs
+    squeezenet1_0         8 MB    335329344 FLOPs
 
-vgg16-7                 392 MB
-    vgg16-7_dynamic     392 MB
-    vgg16-7             392 MB
+vgg16-7                 392 MB    3699376128 FLOPs
+    vgg16-7_dynamic     392 MB    3699376128 FLOPs
+    vgg16-7             392 MB    3699376128 FLOPs
     vgg_ilsvrc_16_age_chalearn_iccv2015
-                        392 MB
+                        392 MB    3699376128 FLOPs
     vgg_ilsvrc_16_age_imdb_wiki
-                        392 MB
+                        392 MB    3699376128 FLOPs
     vgg_ilsvrc_16_gender_imdb_wiki
-                        392 MB
+                        392 MB    3699376128 FLOPs
 
-bvlcalexnet-12          144 MB
-caffenet-12             144 MB
-emotion-ferplus-12-int8   4 MB
+bvlcalexnet-12          144 MB    830668800 FLOPs
+caffenet-12             144 MB    895795200 FLOPs
+emotion-ferplus-12-int8   4 MB    283410432 FLOPs
